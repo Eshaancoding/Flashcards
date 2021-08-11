@@ -47,6 +47,8 @@ try:
     for line in f.readlines():
         # remove any \n from the end of the line
         line = line.rstrip()
+        if line[0] == "#":
+            continue
         if key == "":
             key = line 
         else:
@@ -81,6 +83,7 @@ while True:
 
     # Show progress
     print(colored("Unknown:  " + str(len(unknown)), "red"))
+    print(colored("Shaky:    " + str(len(shaky)),"blue"))
     print(colored("Familiar: " + str(len(familiar)), "yellow"))
     print(colored("Mastered: " + str(len(mastered)), "green"))
     print("\n\n")
@@ -109,6 +112,7 @@ while True:
         if not should_ask: 
             did_fail = True
         else: 
+            print("")
             if response != "" and response != " ":
                 print(colored("Answer:        ", "cyan") + answer)
                 print(colored("Is this correct? (Answer truthfully! y/n):", "cyan"),end=" ")

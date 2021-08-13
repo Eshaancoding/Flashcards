@@ -7,6 +7,45 @@ from time import sleep
 from colorama import init
 init()
 
+def should_close (response): 
+    if response.lower().strip() == "exit":
+        print(colored("Program Exited!", "red"))
+        exit(0)
+    return response
+
+def ask_if_correct (response, answer, should_indent=True):
+    is_correct = None
+    if response != "" and response != " ":
+        if should_indent: 
+            print(colored("Answer:        ", "cyan") + answer)
+        else: 
+            print(colored("Answer: ", "cyan") + answer)
+        is_correct_input = input(colored("Are your correct? (Answer truthfully! y/n): ", "cyan"))
+        if is_correct_input == "y":
+            is_correct = True
+        else:
+            is_correct = False
+    else:
+        print(colored("Answer: ", "cyan") + answer)
+        should_close(input(colored("Press enter to continue (Enter 'exit' if you want to quit) ", "cyan")))
+        is_correct = False
+    return is_correct
+
+def mark_correct (index, familiar, mastered):
+    print(colored("Correct!", "green"))
+    if index < len(unknown): 
+        familiar.append(unknown.pop(index))
+    else: 
+        mastered.append(familiar.pop(index - len(unknown)))
+
+def mark_incorrect (index, unknown, familiar, shaky):
+    # add to shaky 
+    print(colored("Incorrect!", "red"))
+    if index in shaky:
+        unknown.append(familiar.pop(index - len(unknown)))
+        shaky.pop(index)
+    elif index >= len(unknown):
+        shaky.append(index)
 # get all the avaliable flashcards
 list_of_flashcards = []
 for i in os.listdir(os.path.dirname(os.path.realpath(__file__))):
@@ -24,17 +63,27 @@ if len(list_of_flashcards) == 0:
 for i in list_of_flashcards:
     print(i[0:-4], end=" ")
 print("") 
+
 filename = input("")
 while filename + ".txt" not in list_of_flashcards:
-    if filename.strip() == "exit" or filename.strip() == "Exit":
-        print(colored("Program Terminated", "red"))        
-        exit(0)
+    should_close(filename)
     print(colored("Invalid flashcard name. Try Again: ","cyan"))
     filename = input("")
-print(colored("Should we ask you to compare answer to your response? (y/n) ","cyan"))
-should_ask = True if input("") == "y" else False
-print(colored("Should we ask not only the questions but also the answers? (y/n) ","cyan"))
-should_quest = True if input("") == "y" else False
+
+print(colored("Should we ask you the answers along with the questions? (y/n)", "cyan"))
+should_quest = input("")
+while should_quest != "y" and should_quest != "n": 
+    should_close(should_quest)
+    print(colored("Invalid Response! Try again: ", "cyan"))
+    should_quest = input("")
+should_quest = True if should_quest == "y" else False
+
+print(colored("Which mode? ","cyan") + "Text, Text->Flashcards, Flashcards")
+mode = input("")
+while mode != "Text" and mode != "Text->Flashcards" and mode != "Flashcards":
+    should_close(mode)
+    print(colored("Invalid mode. Try again: ", "cyan"))
+    mode = input("")
 print(colored("Great! Let's begin!", "green"))
 sleep(1)
 
@@ -96,48 +145,24 @@ while True:
     print(question + "\n")
     
     # Question user
-    print(colored("Your Response:","cyan"), end=" ")
-    response = input("")
-    if response.strip() == "exit" or response.strip() == "Exit": 
-        print(colored("Program Terminated","red"))
-        exit(0) 
-    elif response.lower().strip() == answer.lower().strip():
-        print(colored("Correct!","green"))
-        if index < len(unknown):
-            familiar.append(unknown.pop(index))
+    result = None
+    if mode == "Flashcards":
+        should_close(input(colored("Press enter when you are ready to see the answer. Enter 'exit' if you want to quit. ", "cyan")))
+        if ask_if_correct(None, answer, False): 
+            mark_correct(index, familiar, mastered)
         else:
-            mastered.append(familiar.pop(index - len(unknown)))
+            mark_incorrect(index, unknown, familiar, shaky)
     else:
-        did_fail = None
-        if not should_ask: 
-            did_fail = True
+        print(colored("Your Response:","cyan"), end=" ")
+        response = should_close(input(""))
+        if response.lower().strip() == answer.lower().strip():
+            mark_correct(index, familiar, mastered)
+        elif mode == "Text->Flashcards": 
+            if ask_if_correct(response, answer):
+                mark_correct(index, familiar, mastered)
+            else:
+                mark_incorrect(index, unknown, familiar, shaky)
         else: 
-            print("")
-            if response != "" and response != " ":
-                print(colored("Answer:        ", "cyan") + answer)
-                print(colored("Is this correct? (Answer truthfully! y/n):", "cyan"),end=" ")
-                is_correct_input = input("")
-                if is_correct_input == "y":
-                    did_fail = False
-                else:
-                    did_fail = True
-            else:
-                print(colored("Answer: ", "cyan") + answer)
-                input(colored("Press enter to continue", "cyan"))
-                did_fail = True
-
-        if did_fail:
-            print(colored("Incorrect!", "red"))
-            # add to shaky 
-            if index in shaky:
-                unknown.append(familiar.pop(index - len(unknown)))
-                shaky.pop(index)
-            elif index >= len(unknown):
-                shaky.append(index)
-        else:
-            print(colored("Correct!","green"))
-            if index < len(unknown):
-                familiar.append(unknown.pop(index))
-            else:
-                mastered.append(familiar.pop(index - len(unknown)))
+            mark_incorrect(index, unknown, familiar, shaky)
+    
     sleep(1)

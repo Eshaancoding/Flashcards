@@ -21,6 +21,9 @@ def ask_if_correct (response, answer, should_indent=True):
         else: 
             print(colored("Answer: ", "cyan") + answer)
         is_correct_input = input(colored("Are your correct? (Answer truthfully! y/n): ", "cyan"))
+        while is_correct_input != "y" and is_correct_input != "n": 
+            should_close(is_correct_input)
+            is_correct_input = input(colored("Invalid response, try again: ","cyan"))
         if is_correct_input == "y":
             is_correct = True
         else:

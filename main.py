@@ -7,6 +7,15 @@ from time import sleep
 from colorama import init
 init()
 
+def is_valid (s, size):
+    integer = None
+    try: 
+        integer = int(s)
+        if integer < 1 or integer > size: 
+            return False
+        return True
+    except ValueError:
+        return False
 def should_close (response): 
     if response.lower().strip() == "exit":
         print(colored("Program Exited!", "red"))
@@ -50,28 +59,35 @@ def mark_incorrect (index, unknown, familiar, shaky):
     elif index >= len(unknown):
         shaky.append(index)
 # get all the avaliable flashcards
+# check recursively.  
+def check_txt (filepath, array): 
+    for i in os.listdir(filepath):
+        if os.path.isdir(os.path.join(filepath, i)):
+            array = check_txt(os.path.join(filepath, i), array)
+        if i.endswith(".txt"):
+            array.append(os.path.join(filepath, i))
+    return array 
 list_of_flashcards = []
-for i in os.listdir(os.path.dirname(os.path.realpath(__file__))):
-    if i.endswith(".txt"):
-        list_of_flashcards.append(i)
+list_of_flashcards = check_txt(os.path.dirname(__file__), list_of_flashcards)
+if len(list_of_flashcards) == 0:
+    raise Exception("No flashcards found!")
 
 # Introduction + settings
 print(chr(27) + "[2J") # clear the console
 print("\033[%d;%dH" % (0, 0)) # move the cursor position to (0,0) 
 print(colored("Welcome to Flashcards!","green")+"\n\n")
-print(colored("What flashcard do you want to open?", "cyan"))
-print(colored("Avaliable Flashcards: ","cyan"),end="") 
-if len(list_of_flashcards) == 0:
-    raise Exception("No flashcards found!")    
-for i in list_of_flashcards:
-    print(i[0:-4], end=" ")
+print(colored("What flashcard do you want to open? Choose by option number.", "cyan")) 
+    
+to_cut_off = len(os.path.dirname(__file__))
+for index, value in enumerate(list_of_flashcards):
+    print(colored("Option " + str(index+1) + ": ","cyan") + value[to_cut_off+1:])
 print("") 
 
-filename = input("")
-while filename + ".txt" not in list_of_flashcards:
-    should_close(filename)
-    print(colored("Invalid flashcard name. Try Again: ","cyan"))
-    filename = input("")
+index_file = input("")
+while not is_valid(index_file, len(list_of_flashcards)):
+    should_close(index_file)
+    print(colored("Invalid Option. Try Again: ","cyan"))
+    index_file = input("")
 
 print(colored("Should we ask you the answers along with the questions? (y/n)", "cyan"))
 should_quest = input("")
@@ -93,7 +109,7 @@ sleep(1)
 # try to open the txt file, if we can't throw error
 flashcards = {}
 try:
-    f = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), filename + ".txt"))
+    f = open(list_of_flashcards[int(index_file)])
     value = ""
     key = ""
     for line in f.readlines():

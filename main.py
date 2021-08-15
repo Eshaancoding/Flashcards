@@ -81,13 +81,11 @@ print(colored("What flashcard do you want to open? Choose by option number.", "c
 to_cut_off = len(os.path.dirname(__file__))
 for index, value in enumerate(list_of_flashcards):
     print(colored("Option " + str(index+1) + ": ","cyan") + value[to_cut_off+1:])
-print("") 
 
-index_file = input("")
+index_file = input(colored("Your Option: ", "cyan"))
 while not is_valid(index_file, len(list_of_flashcards)):
     should_close(index_file)
-    print(colored("Invalid Option. Try Again: ","cyan"))
-    index_file = input("")
+    index_file = input(colored("Invalid Option. Try Again: ","cyan"))
 
 print(colored("Should we ask you the answers along with the questions? (y/n)", "cyan"))
 should_quest = input("")
@@ -109,7 +107,7 @@ sleep(1)
 # try to open the txt file, if we can't throw error
 flashcards = {}
 try:
-    f = open(list_of_flashcards[int(index_file)])
+    f = open(list_of_flashcards[int(index_file)-1])
     value = ""
     key = ""
     for line in f.readlines():
